@@ -1,0 +1,46 @@
+version: "3.8"
+
+services:
+  mysql:
+    image: mysql:8
+    container_name: mysql-container
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: auth_db
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  backend:
+    build: ./backend
+    container_name: backend-container
+    restart: always
+    ports:
+      - "5001:5001"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: rootpassword
+      DB_NAME: auth_db
+      DATABASE_URL: mysql://root:rootpassword@mysql:3306/auth_db
+      ACCESS_TOKEN_SECRET: access_secret
+      REFRESH_TOKEN_SECRET: refresh_secret
+    depends_on:
+      - mysql
+
+  frontend:
+    build: ./frontend
+    container_name: frontend-container
+    restart: always
+    ports:
+      - "3000:3000"
+    environment:
+      NEXT_PUBLIC_API_URL: http://backend:5001
+    depends_on:
+      - backend
+
+volumes:
+  mysql_data:

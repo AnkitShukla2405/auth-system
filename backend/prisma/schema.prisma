@@ -1,0 +1,35 @@
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-arm64-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model refresh_token {
+  id         Int       @id @default(autoincrement())
+  user_id    Int?
+  token      String?   @db.Text
+  created_at DateTime? @default(now()) @db.Timestamp(0)
+  users      users?    @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction, map: "refresh_token_ibfk_1")
+
+  @@index([user_id], map: "user_id")
+}
+
+model users {
+  id            Int             @id @default(autoincrement())
+  name          String?         @db.VarChar(100)
+  email         String?         @unique(map: "email") @db.VarChar(100)
+  password      String?         @db.VarChar(255)
+  role          users_role?     @default(student)
+  refresh_token refresh_token[]
+}
+
+enum users_role {
+  super_admin
+  admin
+  teacher
+  student
+}
